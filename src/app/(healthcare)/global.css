@@ -1,0 +1,218 @@
+/* Styles pour le layout healthcare */
+
+/* Styles pour les éléments du menu sidebar */
+.menu-item {
+  @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 relative;
+}
+
+.menu-item-active {
+  @apply bg-blue-50 text-blue-700 shadow-sm dark:bg-blue-900/20 dark:text-blue-400;
+}
+
+.menu-item-inactive {
+  @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200;
+}
+
+.menu-item-icon-active {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.menu-item-icon-inactive {
+  @apply text-gray-500 group-hover:text-gray-600 dark:text-gray-400 dark:group-hover:text-gray-300;
+}
+
+.menu-item-text {
+  @apply text-inherit;
+}
+
+.menu-dropdown-item {
+  @apply flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200 relative;
+}
+
+.menu-dropdown-item-active {
+  @apply bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400;
+}
+
+.menu-dropdown-item-inactive {
+  @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200;
+}
+
+.menu-dropdown-badge {
+  @apply rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide;
+}
+
+.menu-dropdown-badge-active {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+}
+
+.menu-dropdown-badge-inactive {
+  @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300;
+}
+
+/* Scrollbar personnalisée */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Transitions pour le sidebar */
+.sidebar-transition {
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Styles pour le main content avec sidebar */
+.main-content-expanded {
+  margin-left: 290px;
+}
+
+.main-content-collapsed {
+  margin-left: 90px;
+}
+
+.main-content-mobile {
+  margin-left: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content-expanded,
+  .main-content-collapsed {
+    margin-left: 0;
+  }
+}
+
+/* Animation pour l'overlay mobile */
+.mobile-overlay-enter {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mobile-overlay-enter-active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.mobile-overlay-exit {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-overlay-exit-active {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* Styles pour le header backdrop blur */
+.header-backdrop {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Styles pour les dropdowns */
+.dropdown-enter {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.dropdown-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.dropdown-exit-active {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+}
+
+/* Amélioration des focus states */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+}
+
+/* Styles pour les badges de notification */
+.notification-badge {
+  @apply absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Styles pour les états de chargement */
+.loading-skeleton {
+  @apply animate-pulse bg-gray-200 dark:bg-gray-700;
+}
+
+/* Styles pour les cards du dashboard */
+.dashboard-card {
+  @apply rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900;
+}
+
+.dashboard-card-hover {
+  @apply hover:border-gray-300 dark:hover:border-gray-700;
+}
+
+/* Styles pour les métriques */
+.metric-card {
+  @apply dashboard-card dashboard-card-hover;
+}
+
+.metric-value {
+  @apply text-2xl font-bold text-gray-900 dark:text-white;
+}
+
+.metric-label {
+  @apply text-sm font-medium text-gray-500 dark:text-gray-400;
+}
+
+.metric-change {
+  @apply text-xs font-medium;
+}
+
+.metric-change-positive {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.metric-change-negative {
+  @apply text-red-600 dark:text-red-400;
+}
+
+/* Styles pour les tables */
+.table-container {
+  @apply overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900;
+}
+
+.table-header {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.table-row {
+  @apply border-b border-gray-200 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800;
+}
+
+.table-cell {
+  @apply px-6 py-4 text-sm text-gray-900 dark:text-white;
+}
+
+.table-header-cell {
+  @apply px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400;
+}

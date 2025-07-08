@@ -1,251 +1,202 @@
-'use client';
-
-import React, { useState } from 'react';
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { 
-  Bell, 
   Search, 
-  RefreshCw, 
+  Bell, 
   User, 
+  ChevronDown,
+  Menu,
+  X,
   Settings,
   LogOut,
-  ChevronDown,
-  Wifi,
-  WifiOff,
-  Clock,
-  MapPin,
-  AlertCircle,
-  CheckCircle
-} from 'lucide-react';
+  Shield
+} from "lucide-react";
+import { useSidebar } from "@/context/SidebarContextPro";
 
-interface Notification {
-  id: string;
-  type: 'stock' | 'appointment' | 'sync' | 'adverse';
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  priority: 'low' | 'medium' | 'high';
-}
+const HealthcareHeader: React.FC = () => {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
-interface HealthcareHeaderProps {
-  userInfo?: {
-    name: string;
-    role: string;
-    facility: string;
-    avatar?: string;
-  };
-}
+  // Gestion du raccourci clavier pour la recherche
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
 
-export default function HealthcareHeader({ 
-  userInfo = {
-    name: "Dr. Marie Dupont",
-    role: "Médecin",
-    facility: "Centre de Santé de Douala",
-    avatar: "/api/placeholder/40/40"
-  }
-}: HealthcareHeaderProps) {
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isOnline, setIsOnline] = useState(true);
-  const [lastSync, setLastSync] = useState('Il y a 5 minutes');
-  const [isSyncing, setIsSyncing] = useState(false);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  // Notifications fictives
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'stock',
-      title: 'Stock faible',
-      message: 'Vaccin ROR : 5 doses restantes',
-      time: '2 min',
-      read: false,
-      priority: 'high'
-    },
-    {
-      id: '2',
-      type: 'appointment',
-      title: 'Rendez-vous',
-      message: 'Patient Jean Mbarga - 14h30',
-      time: '15 min',
-      read: false,
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'sync',
-      title: 'Synchronisation',
-      message: 'Données synchronisées avec DHIS2',
-      time: '1 h',
-      read: true,
-      priority: 'low'
-    },
-    {
-      id: '4',
-      type: 'adverse',
-      title: 'Effet secondaire',
-      message: 'Nouveau signalement à vérifier',
-      time: '2 h',
-      read: false,
-      priority: 'high'
-    }
-  ]);
+  // Fermer les menus lors du clic à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
+    };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const handleSync = async () => {
-    setIsSyncing(true);
-    // Simulation de synchronisation
-    setTimeout(() => {
-      setIsSyncing(false);
-      setLastSync('À l\'instant');
-    }, 3000);
-  };
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-  };
-
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'stock':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      case 'appointment':
-        return <Clock className="w-4 h-4 text-blue-500" />;
-      case 'sync':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'adverse':
-        return <AlertCircle className="w-4 h-4 text-orange-500" />;
-      default:
-        return <Bell className="w-4 h-4 text-gray-500" />;
+  const handleToggle = () => {
+    if (window.innerWidth >= 1024) {
+      toggleSidebar();
+    } else {
+      toggleMobileSidebar();
     }
   };
 
-  const getPriorityColor = (priority: Notification['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'border-l-red-500';
-      case 'medium':
-        return 'border-l-yellow-500';
-      case 'low':
-        return 'border-l-green-500';
-      default:
-        return 'border-l-gray-300';
+  const notifications = [
+    {
+      id: 1,
+      title: "Nouveau patient enregistré",
+      message: "Marie Dubois a été ajoutée au système",
+      time: "Il y a 5 min",
+      type: "success",
+      unread: true
+    },
+    {
+      id: 2,
+      title: "Stock faible",
+      message: "Vaccin BCG - Seuil critique atteint",
+      time: "Il y a 1h",
+      type: "warning",
+      unread: true
+    },
+    {
+      id: 3,
+      title: "Rappel vaccination",
+      message: "15 patients à rappeler aujourd'hui",
+      time: "Il y a 2h",
+      type: "info",
+      unread: false
     }
-  };
+  ];
+
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Section gauche - Recherche */}
-        <div className="flex items-center space-x-4">
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
+      <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+        {/* Left Section - Toggle & Logo */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleToggle}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            aria-label="Toggle Sidebar"
+          >
+            {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
+          {/* Logo visible sur mobile */}
+          <Link href="/" className="flex items-center gap-2 lg:hidden">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-lg font-bold text-gray-900 dark:text-white lg:hidden">
+              Vacci<span className="text-blue-500">Check</span>
+            </span>
+          </Link>
+        </div>
+
+        {/* Center Section - Search (Desktop) */}
+        <div className="hidden lg:block lg:max-w-md lg:flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
+              ref={searchRef}
               type="text"
-              placeholder="Rechercher un patient, vaccin..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Rechercher patients, vaccins..."
+              className={`w-full rounded-lg border bg-gray-50 py-2 pl-10 pr-12 text-sm transition-all duration-200 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-400 dark:focus:bg-gray-700 ${
+                isSearchFocused ? 'border-blue-500 bg-white shadow-sm' : 'border-gray-200'
+              }`}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
             />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
+              <span>⌘</span>
+              <span>K</span>
+            </div>
           </div>
         </div>
 
-        {/* Section droite - Actions et profil */}
-        <div className="flex items-center space-x-4">
-          {/* Status de connexion */}
-          <div className="flex items-center space-x-2">
-            {isOnline ? (
-              <div className="flex items-center space-x-1 text-green-600">
-                <Wifi className="w-4 h-4" />
-                <span className="text-sm">En ligne</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1 text-red-600">
-                <WifiOff className="w-4 h-4" />
-                <span className="text-sm">Hors ligne</span>
-              </div>
-            )}
-          </div>
-
-          {/* Synchronisation */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className={`p-2 rounded-lg transition-colors ${
-                isSyncing 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              title="Synchroniser avec DHIS2"
-            >
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            </button>
-            <span className="text-xs text-gray-500">
-              Sync: {lastSync}
-            </span>
-          </div>
+        {/* Right Section - Actions */}
+        <div className="flex items-center gap-2">
+          {/* Search Button (Mobile) */}
+          <button className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 lg:hidden">
+            <Search className="h-5 w-5" />
+          </button>
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+              className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                   {unreadCount}
                 </span>
               )}
             </button>
 
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <div className="p-3 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-800">Notifications</h3>
+            {/* Notification Dropdown */}
+            {isNotificationOpen && (
+              <div className="absolute right-0 top-12 w-80 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                <div className="border-b border-gray-200 p-4 dark:border-gray-700">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Notifications
+                  </h3>
                 </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
-                      Aucune notification
-                    </div>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        onClick={() => markAsRead(notification.id)}
-                        className={`p-3 border-l-4 ${getPriorityColor(notification.priority)} ${
-                          !notification.read ? 'bg-blue-50' : 'bg-white'
-                        } hover:bg-gray-50 cursor-pointer transition-colors`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          {getNotificationIcon(notification.type)}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className={`text-sm font-medium ${
-                                !notification.read ? 'text-gray-900' : 'text-gray-600'
-                              }`}>
-                                {notification.title}
-                              </p>
-                              <span className="text-xs text-gray-500">
-                                {notification.time}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {notification.message}
-                            </p>
-                          </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`border-b border-gray-100 p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 ${
+                        notification.unread ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-1 h-2 w-2 rounded-full ${
+                          notification.type === 'success' ? 'bg-green-500' :
+                          notification.type === 'warning' ? 'bg-yellow-500' :
+                          'bg-blue-500'
+                        }`} />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {notification.title}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            {notification.time}
+                          </p>
                         </div>
+                        {notification.unread && (
+                          <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
+                        )}
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </div>
-                <div className="p-3 border-t border-gray-200">
-                  <button className="w-full text-center text-sm text-blue-600 hover:text-blue-800">
+                <div className="border-t border-gray-200 p-3 dark:border-gray-700">
+                  <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                     Voir toutes les notifications
                   </button>
                 </div>
@@ -253,56 +204,59 @@ export default function HealthcareHeader({
             )}
           </div>
 
-          {/* Menu utilisateur */}
-          <div className="relative">
+          {/* User Menu */}
+          <div className="relative" ref={userMenuRef}>
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <div className="flex items-center space-x-3">
-                {userInfo.avatar ? (
-                  <img
-                    src={userInfo.avatar}
-                    alt={userInfo.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                )}
-                <div className="text-left">
-                  <p className="text-sm font-medium text-gray-800">{userInfo.name}</p>
-                  <p className="text-xs text-gray-500">{userInfo.role}</p>
+              <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
+                <div className="flex h-full w-full items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
                 </div>
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-500" />
+              <div className="hidden text-left sm:block">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Dr. Martin
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Médecin
+                </p>
+              </div>
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </button>
 
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <div className="p-3 border-b border-gray-200">
-                  <p className="font-medium text-gray-800">{userInfo.name}</p>
-                  <p className="text-sm text-gray-600">{userInfo.role}</p>
-                  <div className="flex items-center space-x-1 mt-1">
-                    <MapPin className="w-3 h-3 text-gray-400" />
-                    <p className="text-xs text-gray-500">{userInfo.facility}</p>
-                  </div>
+            {/* User Dropdown */}
+            {isUserMenuOpen && (
+              <div className="absolute right-0 top-12 w-56 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                <div className="border-b border-gray-200 p-4 dark:border-gray-700">
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Dr. Martin Dubois
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    martin.dubois@hopital.fr
+                  </p>
                 </div>
-                <div className="py-2">
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    <User className="w-4 h-4" />
-                    <span>Mon profil</span>
-                  </button>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    <Settings className="w-4 h-4" />
-                    <span>Paramètres</span>
-                  </button>
+                <div className="p-2">
+                  <Link
+                    href="/healthcare/profile"
+                    className="flex items-center gap-3 rounded-lg p-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    <User className="h-4 w-4" />
+                    Mon profil
+                  </Link>
+                  <Link
+                    href="/healthcare/settings"
+                    className="flex items-center gap-3 rounded-lg p-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Paramètres
+                  </Link>
                 </div>
-                <div className="border-t border-gray-200 py-2">
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                    <LogOut className="w-4 h-4" />
-                    <span>Déconnexion</span>
+                <div className="border-t border-gray-200 p-2 dark:border-gray-700">
+                  <button className="flex w-full items-center gap-3 rounded-lg p-2 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+                    <LogOut className="h-4 w-4" />
+                    Se déconnecter
                   </button>
                 </div>
               </div>
@@ -312,4 +266,6 @@ export default function HealthcareHeader({
       </div>
     </header>
   );
-}
+};
+
+export default HealthcareHeader;

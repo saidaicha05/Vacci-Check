@@ -8,6 +8,7 @@ import {
   Archive, RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
+import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 
 const PatientsListPage = () => {
   // États pour la gestion des filtres et recherches
@@ -472,12 +473,12 @@ const PatientsListPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header avec titre et actions */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Liste des Patients</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Patients</h1>
             <p className="text-gray-600">Gestion des dossiers patients et suivi vaccinal</p>
           </div>
 

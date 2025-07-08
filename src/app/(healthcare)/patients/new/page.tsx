@@ -8,6 +8,7 @@ import {
   Phone
 } from 'lucide-react';
 import Link from 'next/link';
+import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 
 const NewPatientPage = () => {
   // États pour les informations du patient

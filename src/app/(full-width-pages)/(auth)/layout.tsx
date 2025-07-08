@@ -2,6 +2,7 @@ import GridShape from "@/components/common/GridShape";
 import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 
 import { ThemeProvider } from "@/context/ThemeContext";
+import { Shield } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -22,22 +23,26 @@ export default function AuthLayout({
               <GridShape />
               <div className="flex flex-col items-center max-w-xs">
                 <Link href="/" className="block mb-4">
-                  <Image
-                    width={231}
-                    height={48}
-                    src="./images/logo/auth-logo.svg"
-                    alt="Logo"
-                  />
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl">
+                      <Shield className="w-10 h-10 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-5xl font-bold text-white dark:text-white">
+                        Vacci<span className="text-brand-500">Check</span>
+                      </h1>
+                    </div>
+                  </div>
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  Welcome back dear !
+                  Check up your vaccines with VacciCheck !
                 </p>
               </div>
             </div>
           </div>
-          <div className="fixed bottom-6 right-6 z-50 hidden sm:block">
+          {/* <div className="fixed bottom-6 right-6 z-50 hidden sm:block">
             <ThemeTogglerTwo />
-          </div>
+          </div> */}
         </div>
       </ThemeProvider>
     </div>

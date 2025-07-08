@@ -3,7 +3,13 @@ import React, { useState } from 'react';
 import { 
   Syringe, Search, Calendar, AlertTriangle, 
   Save, X, User, CheckCircle, Clock,
-  Package, MapPin, Phone, Smartphone
+  Package, MapPin, Phone, Smartphone,
+  QrCode, Camera, Edit, RefreshCw,
+  Upload, Eye,
+  Plus,
+  List,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,23 +19,31 @@ const VaccineRegisterPage = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
 
+  // États pour le scanner QR
+  const [scannerActive, setScannerActive] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+
   // États pour l'enregistrement de vaccination
   const [vaccineData, setVaccineData] = useState({
-    vaccineId: '',
-    batchNumber: '',
-    administrationDate: '',
-    administrationTime: '',
-    location: '',
-    administrator: '',
-    nextDueDate: '',
-    notes: '',
-    adverseReaction: false,
-    reactionDescription: ''
+    citoyen_id: '',
+    type_vaccin_id: '',
+    lot_vaccin_id: '',
+    hopital_id: '',
+    professionnel_id: '',
+    date_vaccination: '',
+    heure_vaccination: '',
+    dose_numero: '',
+    poids_enfant: '',
+    bras_vaccine: '',
+    statut: 'complete',
+    observations: ''
   });
 
   // États pour la gestion du formulaire
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inputMethod, setInputMethod] = useState('manual'); // 'manual' ou 'qr'
 
   // Données simulées des patients
   const patients = [
@@ -59,52 +73,126 @@ const VaccineRegisterPage = () => {
     }
   ];
 
-  // Calendrier vaccinal (exemple)
+  // Types de vaccins disponibles
   const vaccines = [
     {
-      id: 'bcg',
+      id: 1,
       name: 'BCG',
       description: 'Bacille Calmette-Guérin (Tuberculose)',
       ageRecommended: 'À la naissance',
       schedule: 'Dose unique'
     },
     {
-      id: 'polio1',
+      id: 2,
       name: 'Polio 1',
       description: 'Poliomyélite - Première dose',
       ageRecommended: '6 semaines',
       schedule: '1ère dose'
     },
     {
-      id: 'polio2',
+      id: 3,
       name: 'Polio 2',
       description: 'Poliomyélite - Deuxième dose',
       ageRecommended: '10 semaines',
       schedule: '2ème dose'
-    },
-    {
-      id: 'polio3',
-      name: 'Polio 3',
-      description: 'Poliomyélite - Troisième dose',
-      ageRecommended: '14 semaines',
-      schedule: '3ème dose'
-    },
-    {
-      id: 'ror',
-      name: 'ROR',
-      description: 'Rougeole, Oreillons, Rubéole',
-      ageRecommended: '9 mois',
-      schedule: 'Dose unique'
     }
   ];
 
-  // Recherche de patients
+  // Lots de vaccins disponibles
+  const vaccineLots = [
+    { id: 1, numero: 'LOT2024-001', type_vaccin_id: 1, date_expiration: '2024-12-31' },
+    { id: 2, numero: 'LOT2024-002', type_vaccin_id: 2, date_expiration: '2024-11-30' },
+    { id: 3, numero: 'LOT2024-003', type_vaccin_id: 3, date_expiration: '2024-10-31' }
+  ];
+
+  // Hôpitaux disponibles
+  const hospitals = [
+    { id: 1, name: 'Centre de santé de Douala' },
+    { id: 2, name: 'Hôpital Laquintinie' },
+    { id: 3, name: 'Centre de santé de Waza' }
+  ];
+
+  // Professionnels de santé
+  const healthProfessionals = [
+    { id: 1, name: 'Dr. Amadou Sall' },
+    { id: 2, name: 'Inf. Hadjara Bello' },
+    { id: 3, name: 'Dr. Marie Dubois' }
+  ];
+
+  // Données simulées de résultat de scan QR
+  const mockScanResult = {
+    patientId: 1,
+    patientInfo: {
+      firstName: 'Amina',
+      lastName: 'Bello',
+      birthDate: '2022-03-20',
+      gender: 'F',
+      nationalId: 'CM009876'
+    },
+    vaccineInfo: {
+      type_vaccin_id: 1,
+      lot_vaccin_id: 1,
+      date_vaccination: new Date().toISOString().split('T')[0],
+      heure_vaccination: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      dose_numero: 1,
+      hopital_id: 1,
+      professionnel_id: 1
+    }
+  };
+
+  // Simulation du scan QR
+  const handleStartScan = () => {
+    setScannerActive(true);
+    setIsScanning(true);
+    
+    // Simulation de scan après 3 secondes
+    setTimeout(() => {
+      setScanResult(mockScanResult);
+      setSelectedPatient(patients.find(p => p.id === mockScanResult.patientId));
+      setVaccineData(prev => ({
+        ...prev,
+        citoyen_id: mockScanResult.patientId.toString(),
+        ...mockScanResult.vaccineInfo
+      }));
+      setIsScanning(false);
+      setScannerActive(false);
+      setCurrentStep(2);
+    }, 3000);
+  };
+
+  // Arrêt du scan
+  const handleStopScan = () => {
+    setScannerActive(false);
+    setIsScanning(false);
+  };
+
+  // Nouveau scan
+  const handleNewScan = () => {
+    setScanResult(null);
+    setSelectedPatient(null);
+    setVaccineData({
+      citoyen_id: '',
+      type_vaccin_id: '',
+      lot_vaccin_id: '',
+      hopital_id: '',
+      professionnel_id: '',
+      date_vaccination: '',
+      heure_vaccination: '',
+      dose_numero: '',
+      poids_enfant: '',
+      bras_vaccine: '',
+      statut: 'complete',
+      observations: ''
+    });
+    setCurrentStep(1);
+  };
+
+  // Recherche de patients par ID
   const handleSearch = (term) => {
     setSearchTerm(term);
-    if (term.length > 2) {
+    if (term.length > 0) {
       const results = patients.filter(patient =>
-        patient.firstName.toLowerCase().includes(term.toLowerCase()) ||
-        patient.lastName.toLowerCase().includes(term.toLowerCase()) ||
+        patient.id.toString().includes(term) ||
         patient.nationalId.toLowerCase().includes(term.toLowerCase())
       );
       setSearchResults(results);
@@ -116,16 +204,20 @@ const VaccineRegisterPage = () => {
   // Sélection d'un patient
   const selectPatient = (patient) => {
     setSelectedPatient(patient);
+    setVaccineData(prev => ({
+      ...prev,
+      citoyen_id: patient.id.toString()
+    }));
     setSearchResults([]);
     setSearchTerm('');
   };
 
   // Gestion des changements de formulaire
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setVaccineData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
@@ -142,7 +234,8 @@ const VaccineRegisterPage = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       alert('Vaccination enregistrée avec succès!');
-      // router.push('/vaccines');
+      // Reset form
+      handleNewScan();
     } catch (error) {
       console.error("Erreur d'enregistrement:", error);
     } finally {
@@ -150,19 +243,60 @@ const VaccineRegisterPage = () => {
     }
   };
 
+  // Obtenir les lots pour le vaccin sélectionné
+  const getAvailableLots = () => {
+    return vaccineLots.filter(lot => 
+      lot.type_vaccin_id === parseInt(vaccineData.type_vaccin_id)
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-4">
-        {/* En-tête */}
+      <div className="max-w-4xl mx-auto p-2">
+        {/* Titre principal */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <Syringe className="inline mr-2" />
+            Enregistrement d'un nouveau vaccin
+          </h1>
+        </div>
+
+        {/* Contenu principal */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               <Syringe className="text-green-600" />
-              Enregistrer une vaccination
-            </h1>
-            <Link href="/vaccines" className="text-gray-500 hover:text-gray-700">
-              <X className="w-6 h-6" />
-            </Link>
+              Nouvelle vaccination
+            </h2>
+          </div>
+
+          {/* Sélection de la méthode de saisie */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Méthode de saisie</h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setInputMethod('manual')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+                  inputMethod === 'manual' 
+                    ? 'bg-green-50 border-green-500 text-green-700' 
+                    : 'border-gray-300 text-gray-700'
+                }`}
+              >
+                <Edit className="w-4 h-4" />
+                Saisie manuelle
+              </button>
+              <button
+                onClick={() => setInputMethod('qr')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+                  inputMethod === 'qr' 
+                    ? 'bg-blue-50 border-blue-500 text-blue-700' 
+                    : 'border-gray-300 text-gray-700'
+                }`}
+              >
+                <QrCode className="w-4 h-4" />
+                Scanner QR Code
+              </button>
+            </div>
           </div>
 
           {/* Barre de progression */}
@@ -177,7 +311,7 @@ const VaccineRegisterPage = () => {
                 <div className={`text-xs mt-2 ${
                   currentStep >= step ? 'text-green-600 font-medium' : 'text-gray-500'
                 }`}>
-                  {step === 1 && 'Patient'}
+                  {step === 1 && (inputMethod === 'qr' ? 'Scanner QR' : 'Patient')}
                   {step === 2 && 'Vaccin'}
                   {step === 3 && 'Confirmation'}
                 </div>
@@ -187,51 +321,140 @@ const VaccineRegisterPage = () => {
 
           {/* Formulaire */}
           <form onSubmit={handleSubmit}>
-            {/* Étape 1: Sélection du patient */}
+            {/* Étape 1: Sélection du patient ou scan QR */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-gray-900">Sélection du patient</h2>
+                {inputMethod === 'qr' ? (
+                  // Interface QR Scanner
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        Scanner le QR code du carnet vaccinal
+                      </h2>
+                      <p className="text-gray-600 mb-6">
+                        Positionnez le QR code du carnet vaccinal devant la caméra
+                      </p>
+                    </div>
 
-                {/* Recherche de patient */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="Rechercher un patient (nom, prénom, ID national)"
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-
-                {/* Résultats de recherche */}
-                {searchResults.length > 0 && (
-                  <div className="border border-gray-200 rounded-lg bg-white">
-                    {searchResults.map((patient) => (
-                      <div
-                        key={patient.id}
-                        onClick={() => selectPatient(patient)}
-                        className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-gray-900">
-                              {patient.firstName} {patient.lastName}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              Né(e) le {patient.birthDate} • {patient.gender === 'M' ? 'Masculin' : 'Féminin'}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              ID: {patient.nationalId} • {patient.phone}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-green-600">Dernier: {patient.lastVaccine}</p>
-                            <p className="text-sm text-orange-600">À venir: {patient.nextDue}</p>
-                          </div>
+                    {/* Interface caméra */}
+                    <div className="bg-gray-100 rounded-lg p-8 flex flex-col items-center justify-center min-h-96 border-2 border-dashed border-gray-300">
+                      {!scannerActive ? (
+                        <div className="text-center">
+                          <QrCode className="w-24 h-24 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600 mb-4">Prêt à scanner</p>
+                          <button
+                            type="button"
+                            onClick={handleStartScan}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                          >
+                            <Camera className="w-5 h-5" />
+                            Démarrer le scan
+                          </button>
                         </div>
+                      ) : (
+                        <div className="text-center">
+                          {isScanning ? (
+                            <div className="animate-pulse">
+                              <div className="w-64 h-64 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                                <div className="w-32 h-32 border-4 border-blue-600 border-dashed rounded-lg flex items-center justify-center">
+                                  <QrCode className="w-16 h-16 text-blue-600" />
+                                </div>
+                              </div>
+                              <p className="text-blue-600 mb-2">Recherche du QR code...</p>
+                              <div className="flex justify-center gap-2">
+                                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-green-600">
+                              <CheckCircle className="w-24 h-24 mx-auto mb-4" />
+                              <p className="mb-4">QR code détecté avec succès!</p>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleStopScan}
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                          >
+                            Arrêter
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Options alternatives */}
+                    <div className="border-t pt-6">
+                      <h3 className="text-md font-medium text-gray-900 mb-4">Autres options</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button 
+                          type="button"
+                          className="flex items-center gap-3 p-4 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        >
+                          <Upload className="w-5 h-5 text-gray-600" />
+                          <div className="text-left">
+                            <p className="font-medium">Importer une image</p>
+                            <p className="text-sm text-gray-600">Sélectionner une photo du carnet</p>
+                          </div>
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setInputMethod('manual')}
+                          className="flex items-center gap-3 p-4 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        >
+                          <Edit className="w-5 h-5 text-gray-600" />
+                          <div className="text-left">
+                            <p className="font-medium">Saisie manuelle</p>
+                            <p className="text-sm text-gray-600">Enregistrer manuellement</p>
+                          </div>
+                        </button>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Interface saisie manuelle
+                  <div className="space-y-6">
+                    <h2 className="text-lg font-semibold text-gray-900">Recherche du patient</h2>
+
+                    {/* Recherche de patient par ID */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        placeholder="Rechercher un patient par ID ou ID national"
+                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                    </div>
+
+                    {/* Résultats de recherche */}
+                    {searchResults.length > 0 && (
+                      <div className="border border-gray-200 rounded-lg bg-white">
+                        {searchResults.map((patient) => (
+                          <div
+                            key={patient.id}
+                            onClick={() => selectPatient(patient)}
+                            className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium text-gray-900">
+                                  ID: {patient.id} - {patient.firstName} {patient.lastName}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  ID National: {patient.nationalId}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-green-600">Dernier vaccin: {patient.lastVaccine}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -244,24 +467,46 @@ const VaccineRegisterPage = () => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="font-medium">{selectedPatient.firstName} {selectedPatient.lastName}</p>
+                        <p className="font-medium">ID: {selectedPatient.id} - {selectedPatient.firstName} {selectedPatient.lastName}</p>
                         <p className="text-sm text-gray-600">
                           {selectedPatient.gender === 'M' ? 'Masculin' : 'Féminin'} • Né(e) le {selectedPatient.birthDate}
                         </p>
-                        <p className="text-sm text-gray-600">ID: {selectedPatient.nationalId}</p>
+                        <p className="text-sm text-gray-600">ID National: {selectedPatient.nationalId}</p>
                       </div>
                       <div>
                         <p className="text-sm flex items-center gap-1">
                           <Phone className="w-3 h-3" />
                           {selectedPatient.phone}
                         </p>
-                        <p className="text-sm flex items-center gap-1">
-                          <Smartphone className="w-3 h-3" />
-                          {selectedPatient.hasSmartphone ? 'Smartphone disponible' : 'Pas de smartphone'}
-                        </p>
                         <p className="text-sm text-green-600">Prochain vaccin recommandé: {selectedPatient.nextDue}</p>
                       </div>
                     </div>
+                    {inputMethod === 'qr' && (
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleNewScan}
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Nouveau scan
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Bouton suivant */}
+                {selectedPatient && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                    >
+                      Suivant
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -274,10 +519,10 @@ const VaccineRegisterPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vaccin administré *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type de vaccin *</label>
                     <select
-                      name="vaccineId"
-                      value={vaccineData.vaccineId}
+                      name="type_vaccin_id"
+                      value={vaccineData.type_vaccin_id}
                       onChange={handleChange}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       required
@@ -292,29 +537,32 @@ const VaccineRegisterPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de lot *</label>
-                    <div className="relative">
-                      <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="batchNumber"
-                        value={vaccineData.batchNumber}
-                        onChange={handleChange}
-                        className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        placeholder="Ex: LOT123456"
-                        required
-                      />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Lot de vaccin *</label>
+                    <select
+                      name="lot_vaccin_id"
+                      value={vaccineData.lot_vaccin_id}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                      disabled={!vaccineData.type_vaccin_id}
+                    >
+                      <option value="">Sélectionner un lot</option>
+                      {getAvailableLots().map(lot => (
+                        <option key={lot.id} value={lot.id}>
+                          {lot.numero} (Exp: {lot.date_expiration})
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date d'administration *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date de vaccination *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <input
                         type="date"
-                        name="administrationDate"
-                        value={vaccineData.administrationDate}
+                        name="date_vaccination"
+                        value={vaccineData.date_vaccination}
                         onChange={handleChange}
                         className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         required
@@ -323,206 +571,197 @@ const VaccineRegisterPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Heure d'administration</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Heure de vaccination *</label>
                     <div className="relative">
                       <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <input
                         type="time"
-                        name="administrationTime"
-                        value={vaccineData.administrationTime}
+                        name="heure_vaccination"
+                        value={vaccineData.heure_vaccination}
                         onChange={handleChange}
                         className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Lieu d'administration</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="location"
-                        value={vaccineData.location}
-                        onChange={handleChange}
-                        className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        placeholder="Ex: Centre de santé de Douala"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Administrateur</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de dose *</label>
                     <input
-                      type="text"
-                      name="administrator"
-                      value={vaccineData.administrator}
+                      type="number"
+                      name="dose_numero"
+                      value={vaccineData.dose_numero}
                       onChange={handleChange}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      placeholder="Nom de l'agent de santé"
+                      placeholder="1, 2, 3..."
+                      min="1"
+                      required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prochaine vaccination prévue</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="date"
-                        name="nextDueDate"
-                        value={vaccineData.nextDueDate}
-                        onChange={handleChange}
-                        className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Poids de l'enfant (kg)</label>
+                    <input
+                      type="number"
+                      name="poids_enfant"
+                      value={vaccineData.poids_enfant}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Ex: 3.5"
+                      step="0.1"
+                      min="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Bras vacciné</label>
+                    <select
+                      name="bras_vaccine"
+                      value={vaccineData.bras_vaccine}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="gauche">Gauche</option>
+                      <option value="droit">Droit</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hôpital</label>
+                    <select
+                      name="hopital_id"
+                      value={vaccineData.hopital_id}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="">Sélectionner un hôpital</option>
+                      {hospitals.map(hospital => (
+                        <option key={hospital.id} value={hospital.id}>
+                          {hospital.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Professionnel de santé</label>
+                    <select
+                      name="professionnel_id"
+                      value={vaccineData.professionnel_id}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="">Sélectionner un professionnel</option>
+                      {healthProfessionals.map(prof => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <select
+                      name="statut"
+                      value={vaccineData.statut}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="complete">Complète</option>
+                      <option value="annule">Annulée</option>
+                    </select>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Observations</label>
                     <textarea
-                      name="notes"
-                      value={vaccineData.notes}
+                      name="observations"
+                      value={vaccineData.observations}
                       onChange={handleChange}
                       rows={3}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      placeholder="Observations particulières..."
-                    />
+                      placeholder="Remarques, température, réactions..."
+                    ></textarea>
                   </div>
                 </div>
 
-                {/* Signalement d'effet indésirable */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      name="adverseReaction"
-                      checked={vaccineData.adverseReaction}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                    />
-                    <label className="text-sm font-medium text-red-800">
-                      Effet indésirable observé
-                    </label>
-                  </div>
-                  {vaccineData.adverseReaction && (
-                    <textarea
-                      name="reactionDescription"
-                      value={vaccineData.reactionDescription}
-                      onChange={handleChange}
-                      rows={2}
-                      className="w-full mt-2 p-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Décrire l'effet indésirable observé..."
-                    />
-                  )}
+                {/* Boutons navigation */}
+                <div className="flex justify-between pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:bg-green-400"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Enregistrement...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Enregistrer la vaccination
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Étape 3: Confirmation */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-gray-900">Confirmation de l'enregistrement</h2>
-                
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-600" />
-                    <p className="text-green-800">Veuillez vérifier attentivement les informations avant de soumettre</p>
-                  </div>
+              <div className="text-center space-y-6">
+                <div className="text-green-600">
+                  <CheckCircle className="w-16 h-16 mx-auto" />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                      <User className="w-4 h-4 text-blue-500" />
-                      Informations du patient
-                    </h3>
-                    {selectedPatient && (
-                      <div className="space-y-2">
-                        <p><span className="font-medium">Nom:</span> {selectedPatient.firstName} {selectedPatient.lastName}</p>
-                        <p><span className="font-medium">Date de naissance:</span> {selectedPatient.birthDate}</p>
-                        <p><span className="font-medium">Genre:</span> {selectedPatient.gender === 'M' ? 'Masculin' : 'Féminin'}</p>
-                        <p><span className="font-medium">ID National:</span> {selectedPatient.nationalId}</p>
-                        <p><span className="font-medium">Téléphone:</span> {selectedPatient.phone}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                      <Syringe className="w-4 h-4 text-green-500" />
-                      Informations du vaccin
-                    </h3>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">Vaccin:</span> {vaccines.find(v => v.id === vaccineData.vaccineId)?.name || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Lot:</span> {vaccineData.batchNumber || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Date:</span> {vaccineData.administrationDate || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Heure:</span> {vaccineData.administrationTime || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Lieu:</span> {vaccineData.location || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Administrateur:</span> {vaccineData.administrator || 'Non spécifié'}</p>
-                      <p><span className="font-medium">Prochaine vaccination:</span> {vaccineData.nextDueDate || 'Non spécifié'}</p>
-                    </div>
-                  </div>
+                <h2 className="text-2xl font-bold text-gray-900">Vaccination enregistrée avec succès!</h2>
+                <p className="text-gray-600">
+                  La vaccination a été enregistrée dans le dossier médical du patient.
+                </p>
+                <div className="bg-gray-50 p-4 rounded-lg text-left max-w-md mx-auto">
+                  <h3 className="font-medium text-gray-900 mb-2">Récapitulatif</h3>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Patient:</span> {selectedPatient.firstName} {selectedPatient.lastName}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Vaccin:</span> {vaccines.find(v => v.id === parseInt(vaccineData.type_vaccin_id))?.name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Date:</span> {vaccineData.date_vaccination} à {vaccineData.heure_vaccination}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Dose:</span> {vaccineData.dose_numero}
+                  </p>
                 </div>
-
-                {vaccineData.adverseReaction && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h3 className="font-medium text-red-900 mb-2 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      Effet indésirable signalé
-                    </h3>
-                    <p className="text-sm text-red-800">{vaccineData.reactionDescription}</p>
-                  </div>
-                )}
-
-                {vaccineData.notes && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-medium text-blue-900 mb-2">Notes</h3>
-                    <p className="text-sm text-blue-800">{vaccineData.notes}</p>
-                  </div>
-                )}
+                <div className="flex justify-center gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={handleNewScan}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Nouvel enregistrement
+                  </button>
+                  <Link
+                    href="/vaccines"
+                    className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <List className="w-4 h-4" />
+                    Voir les vaccinations
+                  </Link>
+                </div>
               </div>
             )}
-
-            {/* Navigation entre les étapes */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-              {currentStep > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                >
-                  Précédent
-                </button>
-              ) : (
-                <div></div>
-              )}
-
-              {currentStep < 3 ? (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(currentStep + 1)}
-                  disabled={currentStep === 1 && !selectedPatient}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300"
-                >
-                  Suivant
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400"
-                >
-                  {isSubmitting ? (
-                    'Enregistrement...'
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      Enregistrer la vaccination
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
           </form>
         </div>
       </div>

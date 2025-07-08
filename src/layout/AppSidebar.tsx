@@ -76,10 +76,7 @@ const LanguageSelector: React.FC<{
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation(language);
 
-  const languages = [
-    { code: 'en', label: 'English', flag: '🇺🇸' },
-    { code: 'fr', label: 'Français', flag: '🇫🇷' }
-  ];
+
 
   const currentLanguage = languages.find(lang => lang.code === language);
   const showText = isExpanded || isHovered || isMobileOpen;
@@ -418,17 +415,6 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        
-        {/* Language Selector at Bottom */}
-        <div className="mt-auto pb-6">
-          <LanguageSelector 
-            language={language}
-            onChange={setLanguage}
-            isExpanded={isExpanded}
-            isHovered={isHovered}
-            isMobileOpen={isMobileOpen}
-          />
-        </div>
       </div>
     </aside>
   );

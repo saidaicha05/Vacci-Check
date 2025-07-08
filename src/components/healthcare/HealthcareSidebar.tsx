@@ -42,20 +42,10 @@ const HealthcareSidebar: React.FC = () => {
       path: "/dashboard-pro",
     },
     {
-      icon: <Users className="w-5 h-5" />,
-      name: "Patients",
-      subItems: [
-        { name: "Liste", path: "/patients" },
-        // { name: "Recherche", path: "/patients/search" },
-        { name: "Nouveau patient", path: "patients/new", new: true },
-      ],
-    },
-    {
       icon: <Syringe className="w-5 h-5" />,
-      name: "Vaccination",
+      name: "Vaccins",
       subItems: [
-        { name: "Enregistrer", path: "/vaccines/register" },
-        { name: "Scanner QR", path: "/vaccines/qr-scan" },
+        { name: "Nouveau", path: "/vaccines/register" },
         { name: "Historique", path: "/vaccines/history" },
         { name: "Calendrier", path: "/vaccines/calendar" },
       ],
@@ -65,62 +55,28 @@ const HealthcareSidebar: React.FC = () => {
       name: "Stocks",
       subItems: [
         { name: "Inventaire", path: "/inventory" },
-        { name: "Approvisionnement", path: "/inventory/supply" },
         { name: "Alertes", path: "/inventory/alerts" },
-        { name: "Mouvements", path: "/inventory/movements" },
       ],
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
       name: "Pharmacovigilance",
-      subItems: [
-        { name: "Signaler", path: "/adverse-events/report" },
-        { name: "Mes signalements", path: "/adverse-events/my-reports" },
-        { name: "Suivi", path: "/adverse-events/cases" },
-      ],
-    },
-    {
-      icon: <Calendar className="w-5 h-5" />,
-      name: "Rappels",
-      path: "/reminders",
+      path: "/adverse-events/report",
     },
   ];
 
   const othersItems: NavItem[] = [
-    {
-      icon: <BarChart3 className="w-5 h-5" />,
-      name: "Statistiques",
-      subItems: [
-        { name: "Couverture", path: "/reports/coverage" },
-        { name: "Centre", path: "/reports/center-stats" },
-        { name: "DHIS2", path: "/reports/dhis2" },
-        { name: "Export", path: "/reports/export" },
-      ],
-    },
-    {
-      icon: <Database className="w-5 h-5" />,
-      name: "Sync",
-      subItems: [
-        { name: "DHIS2", path: "/sync/dhis2" },
-        { name: "Hors ligne", path: "/sync/offline" },
-        { name: "Historique", path: "/sync/history" },
-      ],
-    },
-    {
-      icon: <MapPin className="w-5 h-5" />,
-      name: "Campagnes",
-      subItems: [
-        { name: "Actives", path: "/campaigns/active" },
-        { name: "Planning", path: "/campaigns/planning" },
-        { name: "Localisation", path: "/campaigns/location" },
-      ],
-    },
+    // {
+    //   icon: <Database className="w-5 h-5" />,
+    //   name: "Sync",
+    //   path: "/sync",
+    // },
     {
       icon: <Settings className="w-5 h-5" />,
       name: "Paramètres",
       subItems: [
-        { name: "Profil", path: "/settings/profile" },
-        { name: "Config", path: "/settings/config" },
+        { name: "Profil", path: "/settings/profile-pro" },
+        // { name: "Config", path: "/settings/config" },
         { name: "Sécurité", path: "/settings/security" },
       ],
     },
@@ -130,7 +86,7 @@ const HealthcareSidebar: React.FC = () => {
     navItems: NavItem[],
     menuType: "main" | "others"
   ) => (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-4">
       {navItems.map((nav, index) => (
         <li key={index}>
           {nav.subItems ? (
